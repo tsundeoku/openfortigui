@@ -107,7 +107,7 @@ MainWindow::MainWindow(QWidget *parent) :
     tmnuAdd->addAction(tr("VPN"), this, SLOT(on_btnAddVPN_clicked()));
     tmnuAdd->addAction(tr("VPN-Group"), this, SLOT(on_btnAddGroup_clicked()));
     tbtnAdd->setPopupMode(QToolButton::InstantPopup);
-    tbtnAdd->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
+    // tbtnAdd->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
     tbtnAdd->setMenu(tmnuAdd);
     tbtnAdd->setIcon(QIcon(":/img/add.png"));
     tbtnAdd->setText(tr("Add"));

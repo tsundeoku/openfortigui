@@ -130,7 +130,7 @@
     <enum>Qt::NoContextMenu</enum>
    </property>
    <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonTextUnderIcon</enum>
+    <enum>Qt::ToolButtonIconOnly</enum>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
