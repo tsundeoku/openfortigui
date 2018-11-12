@@ -78,7 +78,7 @@ void vpnManager::startVPN(const QString &name)
     arguments << "--vpn-name";
     arguments << name;
     arguments << "--main-config";
-    arguments << QString("'%1'").arg(tiConfMain::main_config);
+    arguments << tiConfMain::formatPath(QString("%1").arg(tiConfMain::main_config));
 
     QProcess *vpnProc = new QProcess(this);
     vpnProc->setProcessChannelMode(QProcess::MergedChannels);
@@ -214,6 +214,28 @@ void vpnManager::onClientConnected()
             stopVPN(cmd.objName);
             client->close();
             return;
+        }
+
+        if(cmd.action == vpnApi::ACTION_VPNGROUP_START)
+        {
+            tiConfVpnGroups groups;
+            vpnGroup *vpngroup = groups.getVpnGroupByName(cmd.objName);
+            QStringListIterator it(vpngroup->localMembers);
+            while(it.hasNext())
+            {
+                startVPN(it.next());
+            }
+        }
+
+        if(cmd.action == vpnApi::ACTION_VPNGROUP_STOP)
+        {
+            tiConfVpnGroups groups;
+            vpnGroup *vpngroup = groups.getVpnGroupByName(cmd.objName);
+            QStringListIterator it(vpngroup->localMembers);
+            while(it.hasNext())
+            {
+                stopVPN(it.next());
+            }
         }
 
         //vpnClientConnection *clientConn = new vpnClientConnection(cmd.objName, client);

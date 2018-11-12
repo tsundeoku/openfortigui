@@ -52,7 +52,10 @@ void Krunner_openfortigui::match(Plasma::RunnerContext& ctxt)
 
     QString query = ctxt.query();
     tiConfVpnProfiles vpnProfiles;
+    tiConfVpnGroups vpnGroups;
     vpnProfiles.readVpnProfiles();
+    vpnGroups.readVpnGroups();
+    QMap<QString, QVariant> matchData;
 
     QList<vpnProfile*> vpns = vpnProfiles.getVpnProfiles();
     for(int i=0; i < vpns.count(); i++)
@@ -64,7 +67,9 @@ void Krunner_openfortigui::match(Plasma::RunnerContext& ctxt)
             Plasma::QueryMatch match(this);
             match.setText(vpn->name);
             match.setSubtext(vpn->gateway_host);
-            match.setData(vpn->name);
+            matchData["type"] = Krunner_openfortigui::DATA_TYPE_VPN;
+            matchData["data"] = vpn->name;
+            match.setData(QVariant(matchData));
             match.setType(Plasma::QueryMatch::ExactMatch);
             match.setRelevance(1.0);
             match.setMatchCategory("VPN");
@@ -79,10 +84,55 @@ void Krunner_openfortigui::match(Plasma::RunnerContext& ctxt)
             Plasma::QueryMatch match(this);
             match.setText(vpn->name);
             match.setSubtext(vpn->gateway_host);
-            match.setData(vpn->name);
+            matchData["type"] = Krunner_openfortigui::DATA_TYPE_VPN;
+            matchData["data"] = vpn->name;
+            match.setData(matchData);
             match.setType(Plasma::QueryMatch::CompletionMatch);
             match.setRelevance(0.5);
             match.setMatchCategory("VPN");
+            match.setIcon(QIcon("/usr/share/pixmaps/openfortigui.png"));
+            // Framework >5.24 only
+            // match.setIconName("openfortigui");
+
+            ctxt.addMatch(match);
+        }
+    }
+
+    QList<vpnGroup*> vpngroups = vpnGroups.getVpnGroups();
+    for(int i=0; i < vpngroups.count(); i++)
+    {
+        vpnGroup *vpngroup = vpngroups.at(i);
+
+        if(query == vpngroup->name.toLower())
+        {
+            Plasma::QueryMatch match(this);
+            match.setText(vpngroup->name);
+            //vpnGroup *vpngroupi = vpnGroups.getVpnGroupByName(vpngroup->name);
+            //qWarning() << vpngroupi->localMembers.join(", ");
+            matchData["type"] = Krunner_openfortigui::DATA_TYPE_VPNGROUP;
+            matchData["data"] = vpngroup->name;
+            match.setData(matchData);
+            match.setType(Plasma::QueryMatch::ExactMatch);
+            match.setRelevance(1.0);
+            match.setMatchCategory("VPN Group");
+            match.setIcon(QIcon("/usr/share/pixmaps/openfortigui.png"));
+            // Framework >5.24 only
+            // match.setIconName("openfortigui");
+
+            ctxt.addMatch(match);
+        }
+        else if(vpngroup->name.contains(query, Qt::CaseInsensitive))
+        {
+            Plasma::QueryMatch match(this);
+            match.setText(vpngroup->name);
+            //vpnGroup *vpngroupi = vpnGroups.getVpnGroupByName(vpngroup->name);
+            //qWarning() << vpngroupi->localMembers.join(", ");
+            matchData["type"] = Krunner_openfortigui::DATA_TYPE_VPNGROUP;
+            matchData["data"] = vpngroup->name;
+            match.setData(matchData);
+            match.setType(Plasma::QueryMatch::CompletionMatch);
+            match.setRelevance(0.5);
+            match.setMatchCategory("VPN Group");
             match.setIcon(QIcon("/usr/share/pixmaps/openfortigui.png"));
             // Framework >5.24 only
             // match.setIconName("openfortigui");
@@ -140,8 +190,22 @@ void Krunner_openfortigui::run(const Plasma::RunnerContext& ctxt, const Plasma::
         QDataStream out(&block, QIODevice::WriteOnly);
         out.setVersion(QDataStream::Qt_5_2);
         vpnApi apiData;
-        apiData.objName = match.data().toString();
-        apiData.action = vpnApi::ACTION_VPN_START;
+        switch(match.data().toMap()["type"].toInt())
+        {
+        case Krunner_openfortigui::DATA_TYPE_VPN:
+            apiData.objName = match.data().toMap()["data"].toString();
+            apiData.action = vpnApi::ACTION_VPN_START;
+            break;
+
+        case Krunner_openfortigui::DATA_TYPE_VPNGROUP:
+            apiData.objName = match.data().toMap()["data"].toString();
+            apiData.action = vpnApi::ACTION_VPNGROUP_START;
+            break;
+
+        default:
+            return;
+        }
+
         out << apiData;
 
         apiServer.write(block);

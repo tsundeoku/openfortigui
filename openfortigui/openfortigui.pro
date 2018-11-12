@@ -24,7 +24,7 @@ SOURCES += main.cpp\
     openfortivpn/src/ipv4.c \
     openfortivpn/src/log.c \
     openfortivpn/src/tunnel.c \
-    openfortivpn_local/src/userinput.c \
+    openfortivpn/src/userinput.c \
     openfortivpn/src/xml.c \
     vpnmanager.cpp \
     ticonfmain.cpp \
@@ -84,4 +84,7 @@ FORMS    += mainwindow.ui \
 RESOURCES += \
     res.qrc
 
-unix:!macx:!symbian: LIBS += -lcrypto -lpthread -lssl -lutil -lqt5keychain
+QMAKE_CFLAGS += $$(CPPFLAGS)
+QMAKE_LFLAGS += $$(LDFLAGS)
+
+unix:!symbian: LIBS += -lcrypto -lpthread -lssl -lutil -lqt5keychain
