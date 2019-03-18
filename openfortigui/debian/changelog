@@ -1,223 +1,223 @@
-openfortigui (0.7.3-2) precise; urgency=low
+openfortigui (0.7.3-2) unstable; urgency=low
 
   * Quick bugfix for "CA-bug"
 
  -- Rene Hadler <rene@hadler.me>  Sat, 3 Feb 2019 18:23:00 +0100
 
-openfortigui (0.7.3-1) precise; urgency=low
+openfortigui (0.7.3-1) unstable; urgency=low
 
   * For changelogs see https://github.com/theinvisible/openfortigui/blob/master/openfortigui/vpnchangelog.cpp
 
  -- Rene Hadler <rene@hadler.me>  Sat, 2 Feb 2019 17:03:00 +0100
 
-openfortigui (0.7.2-3) precise; urgency=low
+openfortigui (0.7.2-3) unstable; urgency=low
 
   * Hotfix to work with Debian non-root user
 
  -- Rene Hadler <rene@hadler.me>  Fri, 9 Nov 2018 12:13:00 +0100
 
-openfortigui (0.7.2-2) precise; urgency=low
+openfortigui (0.7.2-2) unstable; urgency=low
 
   * Bugfixes for global profiles
 
  -- Rene Hadler <rene@hadler.me>  Thu, 25 Oct 2018 15:13:00 +0100
 
-openfortigui (0.7.2-1) precise; urgency=low
+openfortigui (0.7.2-1) unstable; urgency=low
 
   * Extend API for Krunner plugin, various bugfixes
 
  -- Rene Hadler <rene@hadler.me>  Sat, 13 Oct 2018 20:44:00 +0100
 
-openfortigui (0.7.1-1) precise; urgency=low
+openfortigui (0.7.1-1) unstable; urgency=low
 
   * Oopenfortivpn core update, various bugfixes
 
  -- Rene Hadler <rene@hadler.me>  Sun, 2 Sep 2018 16:04:00 +0100
 
-openfortigui (0.7.0-1) precise; urgency=low
+openfortigui (0.7.0-1) unstable; urgency=low
 
   * Added japanese language, openfortivpn core update, various bugfixes
 
  -- Rene Hadler <rene@hadler.me>  Sun, 8 Jul 2018 11:02:00 +0100
 
-openfortigui (0.6.2-1) precise; urgency=low
+openfortigui (0.6.2-1) unstable; urgency=low
 
   * Added support API for KRunner
 
  -- Rene Hadler <rene@hadler.me>  Tue, 8 May 2018 16:40:00 +0100
 
-openfortigui (0.6.1-1) precise; urgency=low
+openfortigui (0.6.1-1) unstable; urgency=low
 
   * Added catalan language
   * Ubuntu 18.04 builds added, Bugfixes
 
  -- Rene Hadler <rene@hadler.me>  Tue, 6 May 2018 10:40:00 +0100
 
-openfortigui (0.6.0-1) precise; urgency=low
+openfortigui (0.6.0-1) unstable; urgency=low
 
   * Added option Half internet routes
   * Remove tinyaes references
 
  -- Rene Hadler <rene@hadler.me>  Tue, 10 Apr 2018 22:33:00 +0100
 
-openfortigui (0.5.99-1) precise; urgency=low
+openfortigui (0.5.99-1) unstable; urgency=low
 
   * Switch to OpenSSL as AES library
   * Added changelog to inform users about important program changes
 
  -- Rene Hadler <rene@hadler.me>  Sun, 8 Apr 2018 17:03:00 +0100
 
-openfortigui (0.5.0-1) precise; urgency=low
+openfortigui (0.5.0-1) unstable; urgency=low
 
   * You can enable to use system password manager to store your aes-keys encrypted (beta)
 
  -- Rene Hadler <rene@hadler.me>  Sat, 10 Mar 2018 11:03:00 +0100
 
-openfortigui (0.4.2-1) precise; urgency=low
+openfortigui (0.4.2-1) unstable; urgency=low
 
   * VPN-Autostart added, stricter checks for Profile/Group-names
 
  -- Rene Hadler <rene@hadler.me>  Sat, 17 Feb 2018 17:11:00 +0100
 
-openfortigui (0.4.1-1) precise; urgency=low
+openfortigui (0.4.1-1) unstable; urgency=low
 
   * Fix for display status of group/global VPN, Fix for stopping group vpn
 
  -- Rene Hadler <rene@hadler.me>  Fri, 1 Dec 2017 8:09:00 +0100
 
-openfortigui (0.4.0-2) precise; urgency=low
+openfortigui (0.4.0-2) unstable; urgency=low
 
   * Added translation
 
  -- Rene Hadler <rene@hadler.me>  Fri, 12 Nov 2017 17:28:00 +0100
 
-openfortigui (0.4.0-1) precise; urgency=low
+openfortigui (0.4.0-1) unstable; urgency=low
 
   * Setup wizard, search for vpn profiles, updated to openfortivpn Commit #284, Various fixes
 
  -- Rene Hadler <rene@hadler.me>  Fri, 12 Nov 2017 17:17:00 +0100
 
-openfortigui (0.3.4-1) precise; urgency=low
+openfortigui (0.3.4-1) unstable; urgency=low
 
   * Fix segfault on heavy log load, dialogs are resizeable, update openfortivpn core, possible OTP fix
 
  -- Rene Hadler <rene@hadler.me>  Fri, 6 Oct 2017 7:32:00 +0100
 
-openfortigui (0.3.3-1) precise; urgency=low
+openfortigui (0.3.3-1) unstable; urgency=low
 
   * Set remote VPN-DNS fixed, added realm field to VPN-Profiles
 
  -- Rene Hadler <rene@hadler.me>  Sat, 19 Aug 2017 19:41:00 +0100
 
-openfortigui (0.3.2-2) precise; urgency=low
+openfortigui (0.3.2-2) unstable; urgency=low
 
   * Fix icon format
 
  -- Rene Hadler <rene@hadler.me>  Fri, 14 Aug 2017 9:20:00 +0100
 
-openfortigui (0.3.2-1) precise; urgency=low
+openfortigui (0.3.2-1) unstable; urgency=low
 
   * Fix for connect to older VPNs
 
  -- Rene Hadler <rene@hadler.me>  Fri, 14 Aug 2017 9:08:00 +0100
 
-openfortigui (0.3.1-1) precise; urgency=low
+openfortigui (0.3.1-1) unstable; urgency=low
 
   * Updated Icons, updated to latest openfortivpn upstream
 
  -- Rene Hadler <rene@hadler.me>  Fri, 11 Aug 2017 8:23:00 +0100
 
-openfortigui (0.3.0-1) precise; urgency=low
+openfortigui (0.3.0-1) unstable; urgency=low
 
   * Added OTP-support, several fixes
 
  -- Rene Hadler <rene@hadler.me>  Tue, 16 Jul 2017 15:31:00 +0100
 
-openfortigui (0.2.14-1) precise; urgency=low
+openfortigui (0.2.14-1) unstable; urgency=low
 
   * Added extended logs
 
  -- Rene Hadler <rene@hadler.me>  Tue, 1 Jul 2017 22:43:00 +0100
 
-openfortigui (0.2.13-1) precise; urgency=low
+openfortigui (0.2.13-1) unstable; urgency=low
 
   * Update openfortivpn to latest upstream
 
  -- Rene Hadler <rene@hadler.me>  Tue, 30 Jun 2017 7:53:00 +0100
 
-openfortigui (0.2.12-1) precise; urgency=low
+openfortigui (0.2.12-1) unstable; urgency=low
 
   * Added stats info for traffic, some bugfixes
 
  -- Rene Hadler <rene@hadler.me>  Tue, 20 May 2017 11:53:00 +0100
 
-openfortigui (0.2.11-2) precise; urgency=low
+openfortigui (0.2.11-2) unstable; urgency=low
 
   * Fixed memory leak
 
  -- Rene Hadler <rene@hadler.me>  Tue, 16 May 2017 20:52:00 +0100
 
-openfortigui (0.2.11-1) precise; urgency=low
+openfortigui (0.2.11-1) unstable; urgency=low
 
   * Added option to start minimized, updated upstream openfortivpn
 
  -- Rene Hadler <rene@hadler.me>  Mon, 29 Apr 2017 14:12:00 +0100
 
-openfortigui (0.2.10-1) precise; urgency=low
+openfortigui (0.2.10-1) unstable; urgency=low
 
   * Layout improvements, updated to openfortivpn upstream release, otp field removed, all config options now recognized
 
  -- Rene Hadler <rene@hadler.me>  Mon, 29 Apr 2017 14:12:00 +0100
 
-openfortigui (0.2.9-1) precise; urgency=low
+openfortigui (0.2.9-1) unstable; urgency=low
 
   * Small bugfixes, vpn-profiles needs username and password for being member of group
 
  -- Rene Hadler <rene@hadler.me>  Mon, 13 Apr 2017 13:12:00 +0100
 
-openfortigui (0.2.8-3) precise; urgency=low
+openfortigui (0.2.8-3) unstable; urgency=low
 
   * Added Qt5-language deb dependency
 
  -- Rene Hadler <rene@hadler.me>  Mon, 11 Apr 2017 11:12:00 +0100
 
-openfortigui (0.2.8-2) precise; urgency=low
+openfortigui (0.2.8-2) unstable; urgency=low
 
   * Added german translation
 
  -- Rene Hadler <rene@hadler.me>  Mon, 07 Apr 2017 13:34:00 +0100
 
-openfortigui (0.2.8-1) precise; urgency=low
+openfortigui (0.2.8-1) unstable; urgency=low
 
   * Show window for login if necessary, Some fixes
 
  -- Rene Hadler <rene@hadler.me>  Mon, 07 Apr 2017 13:14:00 +0100
 
-openfortigui (0.2.7-1) precise; urgency=low
+openfortigui (0.2.7-1) unstable; urgency=low
 
   * Fixes & Cleanups
 
  -- Rene Hadler <rene@hadler.me>  Mon, 04 Apr 2017 11:14:00 +0100
 
-openfortigui (0.2.6-1) precise; urgency=low
+openfortigui (0.2.6-1) unstable; urgency=low
 
   * Added some more actionbar buttons, Adjust traymenu on trayposition, smaller bugfixes/improvments
 
  -- Rene Hadler <rene@hadler.me>  Mon, 03 Apr 2017 15:14:00 +0100
 
-openfortigui (0.2.5-1) precise; urgency=low
+openfortigui (0.2.5-1) unstable; urgency=low
 
   * Added settings window
 
  -- Rene Hadler <rene@hadler.me>  Tue, 31 Mar 2017 09:14:00 +0100
 
-openfortigui (0.2.4-1) precise; urgency=low
+openfortigui (0.2.4-1) unstable; urgency=low
 
   * Bugfixes
 
  -- Rene Hadler <rene@hadler.me>  Tue, 28 Mar 2017 09:11:00 +0100
 
-openfortigui (0.2.3-1) precise; urgency=low
+openfortigui (0.2.3-1) unstable; urgency=low
 
   * Divided into local and global profile-dirs
   * Filesystemwatcher for observing vpn-profile dirs
@@ -225,25 +225,25 @@ openfortigui (0.2.3-1) precise; urgency=low
 
  -- Rene Hadler <rene@hadler.me>  Tue, 26 Mar 2017 21:21:00 +0100
 
-openfortigui (0.2.2-1) precise; urgency=low
+openfortigui (0.2.2-1) unstable; urgency=low
 
   * Added german translation
 
  -- Rene Hadler <rene@hadler.me>  Tue, 25 Mar 2017 20:21:00 +0100
 
-openfortigui (0.2.0-1) precise; urgency=low
+openfortigui (0.2.0-1) unstable; urgency=low
 
   * Added VPN-Group functions
 
  -- Rene Hadler <rene@hadler.me>  Tue, 21 Mar 2017 14:21:00 +0100
 
-openfortigui (0.1.1-2) precise; urgency=low
+openfortigui (0.1.1-2) unstable; urgency=low
 
   * Bugfixes and enhancements
 
  -- Rene Hadler <rene@hadler.me>  Tue, 20 Mar 2017 16:31:00 +0100
 
-openfortigui (0.1.0-1) precise; urgency=low
+openfortigui (0.1.0-1) unstable; urgency=low
 
   * Initial debian/ubuntu test release
 
