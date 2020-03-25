@@ -25,6 +25,7 @@
 #include <QFile>
 
 #include "ticonfmain.h"
+#include "vpnapi.h"
 
 class vpnLogger : public QObject
 {
@@ -41,6 +42,8 @@ private:
     QMap<QString, QProcess*> loggers;
     QMap<QString, QFile*> logfiles;
     QMap<QString, bool> loglocker;
+    QMap<QString, bool> logCertFailedMode;
+    QMap<QString, QString> logCertFailedBuffer;
     tiConfMain main_settings;
 
 private slots:
@@ -49,6 +52,8 @@ private slots:
 
 signals:
     void OTPRequest(QProcess *proc);
+    void CertificateValidationFailed(QString name, QString buffer);
+    void VPNMessage(QString name, vpnMsg msg);
 
 public slots:
     void process();

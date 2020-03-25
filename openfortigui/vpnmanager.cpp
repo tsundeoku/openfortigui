@@ -46,6 +46,8 @@ vpnManager::vpnManager(QObject *parent) : QObject(parent)
     connect(logger, SIGNAL(finished()), logger_thread, SLOT(quit()));
     connect(logger, SIGNAL(finished()), logger, SLOT(deleteLater()));
     connect(logger, SIGNAL(OTPRequest(QProcess*)), this, SLOT(onOTPRequest(QProcess*)), Qt::QueuedConnection);
+    connect(logger, SIGNAL(CertificateValidationFailed(QString,QString)), this, SLOT(onCertificateValidationFailed(QString,QString)), Qt::QueuedConnection);
+    connect(logger, SIGNAL(VPNMessage(QString,vpnMsg)), this, SLOT(onClientVPNMessage(QString,vpnMsg)), Qt::QueuedConnection);
     connect(logger_thread, SIGNAL(finished()), logger_thread, SLOT(deleteLater()));
     logger_thread->start();
 }
@@ -69,10 +71,14 @@ vpnManager::~vpnManager()
 
 void vpnManager::startVPN(const QString &name)
 {
+    tiConfMain main_settings;
+
     if(connections.contains(name))
         return;
 
     QStringList arguments;
+    if(main_settings.getValue("main/sudo_preserve_env").toBool())
+        arguments << "-E";
     arguments << QCoreApplication::applicationFilePath();
     arguments << "--start-vpn";
     arguments << "--vpn-name";
@@ -82,6 +88,10 @@ void vpnManager::startVPN(const QString &name)
 
     QProcess *vpnProc = new QProcess(this);
     vpnProc->setProcessChannelMode(QProcess::MergedChannels);
+#if QT_VERSION > QT_VERSION_CHECK(5, 7, 0)
+    connect(vpnProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [=](int exitCode, QProcess::ExitStatus exitStatus){ onVPNProcessFinished(name, exitCode); }, Qt::QueuedConnection);
+    connect(vpnProc, &QProcess::errorOccurred, this, [=](QProcess::ProcessError error){ onVPNProcessErrorOccurred(name, error); }, Qt::QueuedConnection);
+#endif
     emit addVPNLogger(name, vpnProc);
     qDebug() << "Start vpn::" << name;
     vpnProc->start("sudo", arguments);
@@ -96,6 +106,7 @@ void vpnManager::startVPN(const QString &name)
     connect(clientConn, SIGNAL(VPNStatusChanged(QString,vpnClientConnection::connectionStatus)), this, SLOT(onClientVPNStatusChanged(QString,vpnClientConnection::connectionStatus)));
     connect(clientConn, SIGNAL(VPNCredRequest(QString)), this, SLOT(onClientVPNCredRequest(QString)), Qt::QueuedConnection);
     connect(clientConn, SIGNAL(VPNStatsUpdate(QString,vpnStats)), this, SLOT(onClientVPNStatsUpdate(QString,vpnStats)), Qt::QueuedConnection);
+    connect(clientConn, SIGNAL(VPNMessage(QString,vpnMsg)), this, SLOT(onClientVPNMessage(QString,vpnMsg)), Qt::QueuedConnection);
     connections[name] = clientConn;
 
     //logger->addVPN(name, vpnProc);
@@ -216,6 +227,13 @@ void vpnManager::onClientConnected()
             return;
         }
 
+        if(cmd.action == vpnApi::ACTION_SHOW_MAIN)
+        {
+            emit VPNShowMainWindowRequest();
+            client->close();
+            return;
+        }
+
         if(cmd.action == vpnApi::ACTION_VPNGROUP_START)
         {
             tiConfVpnGroups groups;
@@ -266,10 +284,39 @@ void vpnManager::onClientVPNStatsUpdate(QString vpnname, vpnStats stats)
     emit VPNStatsUpdate(vpnname, stats);
 }
 
+void vpnManager::onClientVPNMessage(QString vpnname, vpnMsg msg)
+{
+    emit VPNMessage(vpnname, msg);
+}
+
 void vpnManager::onOTPRequest(QProcess *proc)
 {
     qDebug() << "otprequest from vpnmanager";
     emit VPNOTPRequest(proc);
+}
+
+void vpnManager::onCertificateValidationFailed(QString vpnname, QString buffer)
+{
+    qDebug() << "certificatefailedrequest from vpnmanager";
+    emit VPNCertificateValidationFailed(vpnname, buffer);
+}
+
+void vpnManager::onVPNProcessFinished(QString name, int exitCode)
+{
+    qDebug() << "VPN process " << name << " finished!";
+    if(connections.contains(name))
+    {
+        connections.remove(name);
+    }
+}
+
+void vpnManager::onVPNProcessErrorOccurred(QString name, QProcess::ProcessError error)
+{
+    qDebug() << "VPN process " << name << " error occurred!";
+    if(connections.contains(name))
+    {
+        connections.remove(name);
+    }
 }
 
 vpnClientConnection::vpnClientConnection(const QString &n, QObject *parent) : QObject(parent)
@@ -352,6 +399,12 @@ void vpnClientConnection::onClientReadyRead()
         stats.bytes_written = jobj["bytes_written"].toVariant().toLongLong();
         stats.vpn_start = jobj["vpn_start"].toVariant().toLongLong();
         emit VPNStatsUpdate(name, stats);
+        break;
+    case vpnApi::ACTION_VPN_MSG:
+        vpnMsg msg;
+        msg.msg = jobj["msg"].toVariant().toString();
+        msg.type = jobj["msg_type"].toVariant().toInt();
+        emit VPNMessage(name, msg);
         break;
     }
 

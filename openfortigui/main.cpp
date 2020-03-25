@@ -34,6 +34,7 @@
 #include <QLibraryInfo>
 #include <QTranslator>
 #include <QMessageBox>
+#include <QLocalSocket>
 
 QFile *openfortiguiLog = 0;
 
@@ -107,6 +108,7 @@ int main(int argc, char *argv[])
 
     qRegisterMetaType<vpnClientConnection::connectionStatus>("vpnClientConnection::connectionStatus");
     qRegisterMetaType<vpnStats>("vpnStats");
+    qRegisterMetaType<vpnMsg>("vpnMsg");
 
     tiConfMain main_settings;
 
@@ -162,7 +164,8 @@ int main(int argc, char *argv[])
             qDebug() << QString("start-vpn process::config_file::") << tiConfMain::main_config;
 
             vpnProcess proc;
-            proc.run(arg_vpnname);
+            proc.setup(arg_vpnname);
+            QTimer::singleShot(100, &proc, SLOT(startVPN()));
 
             return a.exec();
         }
@@ -192,10 +195,26 @@ int main(int argc, char *argv[])
 
         if(isRunningAlready())
         {
-            qDebug() << "This application is already running, exiting now.";
-            QMessageBox::critical(0, QApplication::tr("Application error"),
-                                            QApplication::tr("This application is already running, exiting now."),
-                                            QMessageBox::Ok);
+            // Ask the running instance to show the main window instead of error message
+            QLocalSocket apiServer;
+            apiServer.connectToServer(openfortigui_config::name);
+            if(apiServer.waitForConnected(1000))
+            {
+                QByteArray block;
+                QDataStream out(&block, QIODevice::WriteOnly);
+                out.setVersion(QDataStream::Qt_5_2);
+                vpnApi apiData;
+                apiData.action = vpnApi::ACTION_SHOW_MAIN;
+                out << apiData;
+
+                apiServer.write(block);
+                apiServer.flush();
+            }
+            else
+            {
+                qWarning() << apiServer.errorString();
+            }
+
             exit(0);
         }
 

@@ -24,15 +24,19 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QRegExp>
+#include <QFileInfo>
+#include <QDir>
 
 #include "ticonfmain.h"
 
 vpnProcess::vpnProcess(QObject *parent) : QObject(parent)
 {
     init_last_tunnel = false;
+    thread_worker = 0;
+    thread_vpn = 0;
 }
 
-void vpnProcess::run(const QString &vpnname)
+void vpnProcess::setup(const QString &vpnname)
 {
     name = vpnname;
 
@@ -59,30 +63,37 @@ void vpnProcess::run(const QString &vpnname)
         qWarning() << apiServer->errorString();
     }
 
-    startVPN();
+    //startVPN();
 }
 
 void vpnProcess::closeProcess()
 {
     qDebug() << "shutting down vpn process::" << name;
 
-    thread_worker->end();
-    thread_vpn->quit();
-    QThread::sleep(2);
-    thread_vpn->terminate();
+    if(thread_worker != 0 && thread_vpn != 0)
+    {
+        thread_worker->end();
+        thread_vpn->quit();
+        QThread::sleep(2);
+        thread_vpn->terminate();
+    }
     QCoreApplication::quit();
 }
 
 void vpnProcess::startVPN()
 {
-    qDebug() << "vpnProcess::startVPN::slot";
-
     tiConfVpnProfiles profiles;
     tiConfMain main_settings;
     bool usePasswordStore = main_settings.getValue("main/use_system_password_store").toBool();
     if(usePasswordStore)
         profiles.setReadProfilePasswords(false);
     vpnProfile *profile = profiles.getVpnProfileByName(name);
+    if(!checkVPNSettings(profile))
+    {
+        qDebug() << "VPN settings check failed, exiting!";
+        closeProcess();
+        return;
+    }
 
     // Try to fetch password from current user password store
     if(usePasswordStore)
@@ -102,6 +113,7 @@ void vpnProcess::startVPN()
 
         if(wmax == 30)
         {
+            submitVPNMessage(tr("Timeout for password request from passstore!"), vpnMsg::TYPE_ERROR);
             closeProcess();
             return;
         }
@@ -133,6 +145,7 @@ void vpnProcess::startVPN()
 
         if(wmax == 30)
         {
+            submitVPNMessage(tr("Timeout for user/password request, try again!"), vpnMsg::TYPE_ERROR);
             closeProcess();
             return;
         }
@@ -163,6 +176,21 @@ void vpnProcess::startVPN()
     observerStats = new QTimer(this);
     connect(observerStats, SIGNAL(timeout()), this, SLOT(onStatsUpdate()));
     observerStats->start(2000);
+}
+
+bool vpnProcess::checkVPNSettings(vpnProfile *profile)
+{
+    bool ret = true;
+
+    QFileInfo ltest(profile->pppd_log_file);
+    QDir ldtest;
+    if(!profile->pppd_log_file.isEmpty() && !ldtest.exists(ltest.absolutePath()))
+    {
+        submitVPNMessage(tr("PPPD log file dir %1 does not exist!").arg(profile->pppd_log_file), vpnMsg::TYPE_ERROR);
+        ret = false;
+    }
+
+    return ret;
 }
 
 void vpnProcess::sendCMD(const vpnApi &cmd)
@@ -255,6 +283,24 @@ void vpnProcess::submitStats()
     vpnApi cmd;
     cmd.objName = name;
     cmd.action = vpnApi::ACTION_VPNSTATS_SUBMIT;
+    cmd.data = json.toJson();
+
+    sendCMD(cmd);
+}
+
+void vpnProcess::submitVPNMessage(const QString &msg, int msg_type)
+{
+    QJsonDocument json;
+    QJsonObject jsTop;
+
+    jsTop["msg"] = msg;
+    jsTop["msg_type"] = msg_type;
+
+    json.setObject(jsTop);
+
+    vpnApi cmd;
+    cmd.objName = name;
+    cmd.action = vpnApi::ACTION_VPN_MSG;
     cmd.data = json.toJson();
 
     sendCMD(cmd);

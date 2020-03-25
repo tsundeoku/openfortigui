@@ -1,4 +1,28 @@
-openfortigui (0.7.3-2) unstable; urgency=low
+openfortigui (0.8.2-1) precise; urgency=low
+
+  * For changelogs see https://github.com/theinvisible/openfortigui/blob/master/openfortigui/vpnchangelog.cpp
+
+ -- Rene Hadler <rene@hadler.me>  Fri, 31 Jan 2020 8:22:00 +0100
+
+openfortigui (0.8.1-1) precise; urgency=low
+
+  * For changelogs see https://github.com/theinvisible/openfortigui/blob/master/openfortigui/vpnchangelog.cpp
+
+ -- Rene Hadler <rene@hadler.me>  Sat, 26 Oct 2019 7:01:00 +0100
+
+openfortigui (0.8.0-1) precise; urgency=low
+
+  * For changelogs see https://github.com/theinvisible/openfortigui/blob/master/openfortigui/vpnchangelog.cpp
+
+ -- Rene Hadler <rene@hadler.me>  Tue, 9 Jul 2019 20:01:00 +0100
+
+openfortigui (0.7.4-1) precise; urgency=low
+
+  * For changelogs see https://github.com/theinvisible/openfortigui/blob/master/openfortigui/vpnchangelog.cpp
+
+ -- Rene Hadler <rene@hadler.me>  Tue, 14 May 2019 16:23:00 +0100
+
+openfortigui (0.7.3-2) precise; urgency=low
 
   * Quick bugfix for "CA-bug"
 

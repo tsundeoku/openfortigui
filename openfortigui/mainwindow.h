@@ -95,9 +95,13 @@ private slots:
     void onClientVPNStatusChanged(QString vpnname, vpnClientConnection::connectionStatus status);
     void onClientVPNCredRequest(QString vpnname);
     void onClientVPNOTPRequest(QProcess *proc);
+    void onClientCertValidationFAiled(QString vpnname, QString buffer);
 
     void onClientVPNStatsUpdate(QString vpnname, vpnStats stats);
+    void onClientVPNMessage(QString vpnname, vpnMsg msg);
     void ontvVpnProfilesCustomContextMenu(const QPoint &point);
+
+    void showMainWindow();
 
 private:
     Ui::MainWindow *ui;

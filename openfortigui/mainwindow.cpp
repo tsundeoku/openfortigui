@@ -56,6 +56,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(vpnmanager, SIGNAL(VPNCredRequest(QString)), this, SLOT(onClientVPNCredRequest(QString)));
     connect(vpnmanager, SIGNAL(VPNStatsUpdate(QString,vpnStats)), this, SLOT(onClientVPNStatsUpdate(QString,vpnStats)));
     connect(vpnmanager, SIGNAL(VPNOTPRequest(QProcess*)), this, SLOT(onClientVPNOTPRequest(QProcess*)));
+    connect(vpnmanager, SIGNAL(VPNMessage(QString,vpnMsg)), this, SLOT(onClientVPNMessage(QString,vpnMsg)));
+    connect(vpnmanager, SIGNAL(VPNCertificateValidationFailed(QString,QString)), this, SLOT(onClientCertValidationFAiled(QString,QString)));
+    connect(vpnmanager, SIGNAL(VPNShowMainWindowRequest()), this, SLOT(showMainWindow()));
 
     signalMapper = new QSignalMapper(this);
     connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(onActionStartVPN(QString)));
@@ -64,6 +67,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // Center window on startup
     QRect geom = QApplication::desktop()->availableGeometry();
+    if(geom.width() > 2560 && geom.height() > 1440)
+        resize(geom.width() / 3, geom.height() / 3);
     move((geom.width() - width()) / 2, (geom.height() - height()) / 2);
 
     // Treeview VPNs
@@ -82,8 +87,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tvVpnProfiles->setExpanded(model->indexFromItem(root_local_vpn), true);
     ui->tvVpnProfiles->setExpanded(model->indexFromItem(root_global_vpn), true);
     ui->tvVpnProfiles->header()->resizeSection(0, 150);
-    ui->tvVpnProfiles->header()->resizeSection(1, 150);
-    ui->tvVpnProfiles->header()->resizeSection(2, 300);
+    ui->tvVpnProfiles->header()->resizeSection(1, int(width() * 0.27));
+    ui->tvVpnProfiles->header()->resizeSection(2, int(width() * 0.27));
 
     connect(ui->tvVpnProfiles, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(ontvVpnProfilesCustomContextMenu(const QPoint &)));
     connect(ui->leSearch, SIGNAL(textChanged(QString)), this, SLOT(onvpnSearch(QString)));
@@ -99,7 +104,7 @@ MainWindow::MainWindow(QWidget *parent) :
     tray->setIcon(QIcon(":/img/app.png"));
     tray->show();
     tray_menu = tray->contextMenu();
-    tray_group_menu = new QMenu(trUtf8("VPN-Groups"));
+    tray_group_menu = new QMenu(tr("VPN-Groups"));
     connect(tray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(onTrayIconActivated(QSystemTrayIcon::ActivationReason)));
 
     QToolButton *tbtnAdd = new QToolButton();
@@ -112,18 +117,18 @@ MainWindow::MainWindow(QWidget *parent) :
     tbtnAdd->setIcon(QIcon(":/img/add.png"));
     tbtnAdd->setText(tr("Add"));
 
-    ui->tbActions->addAction(QIcon(":/img/connected.png"), trUtf8("Connect"), this, SLOT(onStartVPN()));
-    ui->tbActions->addAction(QIcon(":/img/disconnected.png"), trUtf8("Disconnect"), this, SLOT(onStopVPN()));
+    ui->tbActions->addAction(QIcon(":/img/connected.png"), tr("Connect"), this, SLOT(onStartVPN()));
+    ui->tbActions->addAction(QIcon(":/img/disconnected.png"), tr("Disconnect"), this, SLOT(onStopVPN()));
     ui->tbActions->addSeparator();
     ui->tbActions->addWidget(tbtnAdd);
-    ui->tbActions->addAction(QIcon(":/img/edit.png"), trUtf8("Edit"), this, SLOT(onTbActionEdit()));
-    ui->tbActions->addAction(QIcon(":/img/copy.png"), trUtf8("Copy"), this, SLOT(onTbActionCopy()));
-    QAction *actionSearch = ui->tbActions->addAction(QIcon(":/img/search.png"), trUtf8("Search"), this, SLOT(onTbActionSearch()));
+    ui->tbActions->addAction(QIcon(":/img/edit.png"), tr("Edit"), this, SLOT(onTbActionEdit()));
+    ui->tbActions->addAction(QIcon(":/img/copy.png"), tr("Copy"), this, SLOT(onTbActionCopy()));
+    QAction *actionSearch = ui->tbActions->addAction(QIcon(":/img/search.png"), tr("Search"), this, SLOT(onTbActionSearch()));
     actionSearch->setCheckable(true);
     ui->tbActions->addSeparator();
-    ui->tbActions->addAction(QIcon(":/img/delete.png"), trUtf8("Delete"), this, SLOT(onTbActionDelete()));
+    ui->tbActions->addAction(QIcon(":/img/delete.png"), tr("Delete"), this, SLOT(onTbActionDelete()));
     ui->tbActions->addSeparator();
-    ui->tbActions->addAction(QIcon(":/img/about.png"), trUtf8("About"), this, SLOT(onActionAbout()));
+    ui->tbActions->addAction(QIcon(":/img/about.png"), tr("About"), this, SLOT(onActionAbout()));
 
     ui->leSearch->hide();
 
@@ -152,8 +157,11 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!main_settings.getValue("main/setupwizard").toBool())
         onSetupWizard();
 
-    if(main_settings.getValue("main/changelogrev_read", 0).toInt() == 0 || openfortigui_config::changelogRev > main_settings.getValue("main/changelogrev_read", 0).toInt())
+    if(main_settings.getValue("main/changelogrev_read", 0).toInt() > 0 && openfortigui_config::changelogRev > main_settings.getValue("main/changelogrev_read", 0).toInt())
         onChangelog();
+
+    if(main_settings.getValue("main/changelogrev_read", 0).toInt() == 0)
+        main_settings.setValue("main/changelogrev_read", openfortigui_config::changelogRev);
 
     if(main_settings.getValue("main/show_search").toBool())
     {
@@ -179,7 +187,7 @@ void MainWindow::on_btnAddVPN_clicked()
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Add VPN"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Add VPN"));
 
     connect(f, SIGNAL(vpnAdded(vpnProfile)), this, SLOT(onvpnAdded(vpnProfile)));
     prefWindow->show();
@@ -199,8 +207,8 @@ void MainWindow::on_btnDeleteVPN_clicked()
 
     if(model->itemFromIndex(sellist.at(0))->parent()->data().toInt() == vpnProfile::Origin_GLOBAL)
     {
-        QMessageBox::warning(this, trUtf8("Delete VPN"),
-                                        trUtf8("Global VPN-Profiles cannot be deleted."),
+        QMessageBox::warning(this, tr("Delete VPN"),
+                                        tr("Global VPN-Profiles cannot be deleted."),
                                         QMessageBox::Ok);
 
         return;
@@ -213,8 +221,8 @@ void MainWindow::on_btnDeleteVPN_clicked()
     vpnClientConnection *cl = vpnmanager->getClientConnection(vpnName);
     if(cl != 0 && cl->status != vpnClientConnection::STATUS_DISCONNECTED)
     {
-        QMessageBox::warning(this, trUtf8("Delete VPN"),
-                                        trUtf8("The VPN state must be disconnected to perform this action."),
+        QMessageBox::warning(this, tr("Delete VPN"),
+                                        tr("The VPN state must be disconnected to perform this action."),
                                         QMessageBox::Ok);
 
         return;
@@ -222,8 +230,8 @@ void MainWindow::on_btnDeleteVPN_clicked()
 
     qDebug() << "MainWindow::on_btnDeleteVPN_clicked() -> remove vpn with name::" << vpnName;
 
-    int ret = QMessageBox::warning(this, trUtf8("Delete VPN"),
-                                trUtf8("Warning, the selected vpn will be deleted, continue?"),
+    int ret = QMessageBox::warning(this, tr("Delete VPN"),
+                                tr("Warning, the selected vpn will be deleted, continue?"),
                                 QMessageBox::Yes | QMessageBox::No);
 
     switch(ret)
@@ -242,7 +250,7 @@ void MainWindow::on_btnDeleteVPN_clicked()
     }
     else
     {
-        QMessageBox::information(this, trUtf8("Delete VPN"), trUtf8("The selected vpn could not be deleted, an error occured."));
+        QMessageBox::information(this, tr("Delete VPN"), tr("The selected vpn could not be deleted, an error occured."));
     }
 }
 
@@ -264,8 +272,8 @@ void MainWindow::on_btnEditVPN_clicked()
     vpnClientConnection *cl = vpnmanager->getClientConnection(vpnName);
     if(cl != 0 && cl->status != vpnClientConnection::STATUS_DISCONNECTED)
     {
-        QMessageBox::warning(this, trUtf8("Edit VPN"),
-                                        trUtf8("The VPN state must be disconnected to perform this action."),
+        QMessageBox::warning(this, tr("Edit VPN"),
+                                        tr("The VPN state must be disconnected to perform this action."),
                                         QMessageBox::Ok);
 
         return;
@@ -279,7 +287,7 @@ void MainWindow::on_btnEditVPN_clicked()
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Edit VPN"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Edit VPN"));
 
     connect(f, SIGNAL(vpnEdited(vpnProfile)), this, SLOT(onvpnEdited(vpnProfile)));
     prefWindow->show();
@@ -327,7 +335,7 @@ void MainWindow::on_btnAddGroup_clicked()
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Add VPN-Group"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Add VPN-Group"));
 
     connect(f, SIGNAL(vpnGroupAdded(vpnGroup)), this, SLOT(onvpnGroupAdded(vpnGroup)));
     prefWindow->show();
@@ -348,8 +356,8 @@ void MainWindow::on_btnDeleteGroup_clicked()
 
     qDebug() << "MainWindow::on_btnDeleteGroup_clicked() -> remove vpngroup with name::" << vpnGroupName;
 
-    int ret = QMessageBox::warning(this, trUtf8("Delete VPN-Group"),
-                                trUtf8("Warning, the selected vpn-group will be deleted, continue?"),
+    int ret = QMessageBox::warning(this, tr("Delete VPN-Group"),
+                                tr("Warning, the selected vpn-group will be deleted, continue?"),
                                 QMessageBox::Yes | QMessageBox::No);
 
     switch(ret)
@@ -368,7 +376,7 @@ void MainWindow::on_btnDeleteGroup_clicked()
     }
     else
     {
-        QMessageBox::information(this, trUtf8("Delete VPN-Group"), trUtf8("The selected vpn-group could not be deleted, an error occured."));
+        QMessageBox::information(this, tr("Delete VPN-Group"), tr("The selected vpn-group could not be deleted, an error occured."));
     }
 }
 
@@ -393,7 +401,7 @@ void MainWindow::on_btnEditGroup_clicked()
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Edit VPN-Group"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Edit VPN-Group"));
 
     connect(f, SIGNAL(vpnGroupEdited(vpnGroup)), this, SLOT(onvpnGroupEdited(vpnGroup)));
     prefWindow->show();
@@ -716,10 +724,12 @@ void MainWindow::onClientVPNCredRequest(QString vpnname)
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Login"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Login"));
     f->initAfter();
 
     prefWindow->show();
+    prefWindow->raise();
+    QApplication::setActiveWindow(prefWindow);
 }
 
 void MainWindow::onClientVPNOTPRequest(QProcess *proc)
@@ -732,10 +742,42 @@ void MainWindow::onClientVPNOTPRequest(QProcess *proc)
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - OTP-Login"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - OTP-Login"));
     f->initAfter();
 
     prefWindow->show();
+}
+
+void MainWindow::onClientCertValidationFAiled(QString vpnname, QString buffer)
+{
+    QString hash = "", info = "";
+    QRegularExpression reHash("--trusted-cert (.*?)\n");
+    QRegularExpressionMatch matchHash = reHash.match(buffer);
+    if(matchHash.hasMatch())
+        hash = matchHash.captured(1);
+
+    QRegularExpression reInfo("Gateway certificate:\n(.*?)sha256 digest:\n", QRegularExpression::DotMatchesEverythingOption);
+    QRegularExpressionMatch matchInfo = reInfo.match(buffer);
+    if(matchInfo.hasMatch())
+        info = matchInfo.captured(1).replace("ERROR:", "");
+
+    if(hash.isEmpty())
+        return;
+
+    info.prepend(tr("Gateway certificate validation failed and the certificate digest is not in the local whitelist nor a valid CA is provided. Certificate details:\n\n"));
+    info.append(tr("\n\nAdd certificate to VPN-profile whitelist?"));
+
+    if(QMessageBox::question(this, tr("Gateway certificate validation failed"), info) == QMessageBox::Yes)
+    {
+        tiConfVpnProfiles profiles;
+        profiles.setReadProfilePasswords(true);
+        vpnProfile *profile = profiles.getVpnProfileByName(vpnname);
+        if(profile != 0)
+        {
+            profile->trusted_cert = hash;
+            profiles.saveVpnProfile(*profile);
+        }
+    }
 }
 
 void MainWindow::onClientVPNStatsUpdate(QString vpnname, vpnStats stats)
@@ -747,6 +789,23 @@ void MainWindow::onClientVPNStatsUpdate(QString vpnname, vpnStats stats)
     {
         QString disp = QString("%1 / %2").arg(vpnHelper::formatByteUnits(stats.bytes_read)).arg(vpnHelper::formatByteUnits(stats.bytes_written));
         item_stats->setText(disp);
+    }
+}
+
+void MainWindow::onClientVPNMessage(QString vpnname, vpnMsg msg)
+{
+    switch(msg.type)
+    {
+    case vpnMsg::TYPE_ERROR:
+        QMessageBox::critical(this, tr("Error"), msg.msg);
+        break;
+    case vpnMsg::TYPE_WARNING:
+        QMessageBox::warning(this, tr("Warning"), msg.msg);
+        break;
+    case vpnMsg::TYPE_INFO:
+    default:
+        QMessageBox::information(this, tr("Information"), msg.msg);
+        break;
     }
 }
 
@@ -811,6 +870,13 @@ void MainWindow::ontvVpnProfilesCustomContextMenu(const QPoint &point)
     }
 }
 
+void MainWindow::showMainWindow()
+{
+    show();
+    raise();
+    QApplication::setActiveWindow(this);
+}
+
 MainWindow::TASKBAR_POSITION MainWindow::taskbarPosition()
 {
     QScreen *screen = QGuiApplication::primaryScreen();
@@ -852,9 +918,9 @@ void MainWindow::refreshVpnProfileList()
     tray_menu->clear();
     if(MainWindow::taskbarPosition() == MainWindow::TASKBAR_POSITION_TOP)
     {
-        tray_menu->addAction(QIcon(":/img/quit.png"),trUtf8("Quit app"), this, SLOT(onQuit()));
-        tray_menu->addAction(QIcon(":/img/settings.png"), trUtf8("Settings"), this, SLOT(onVPNSettings()));
-        tray_menu->addAction(QIcon(":/img/show.png"), trUtf8("Show mainwindow"), this, SLOT(show()));
+        tray_menu->addAction(QIcon(":/img/quit.png"),tr("Quit OpenFortiGUI"), this, SLOT(onQuit()));
+        tray_menu->addAction(QIcon(":/img/settings.png"), tr("Settings"), this, SLOT(onVPNSettings()));
+        tray_menu->addAction(QIcon(":/img/show.png"), tr("Show mainwindow"), this, SLOT(show()));
         tray_menu->addSeparator();
         tray_menu->addMenu(tray_group_menu);
         tray_menu->addSeparator();
@@ -959,9 +1025,9 @@ void MainWindow::refreshVpnProfileList()
         tray_menu->addSeparator();
         tray_menu->addMenu(tray_group_menu);
         tray_menu->addSeparator();
-        tray_menu->addAction(QIcon(":/img/show.png"), trUtf8("Show mainwindow"), this, SLOT(show()));
-        tray_menu->addAction(QIcon(":/img/settings.png"), trUtf8("Settings"), this, SLOT(onVPNSettings()));
-        tray_menu->addAction(QIcon(":/img/quit.png"), trUtf8("Quit app"), this, SLOT(onQuit()));
+        tray_menu->addAction(QIcon(":/img/show.png"), tr("Show mainwindow"), this, SLOT(show()));
+        tray_menu->addAction(QIcon(":/img/settings.png"), tr("Settings"), this, SLOT(onVPNSettings()));
+        tray_menu->addAction(QIcon(":/img/quit.png"), tr("Quit OpenFortiGUI"), this, SLOT(onQuit()));
     }
 
     tray->setContextMenu(tray_menu);
@@ -1130,7 +1196,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
 void MainWindow::onActionAbout()
 {
-    QMessageBox::about(this, trUtf8("About openFortiGUI"), trUtf8("<b>openFortiGUI %1</b><br>"
+    QMessageBox::about(this, tr("About openFortiGUI"), tr("<b>openFortiGUI %1</b><br>"
                                                              "<table><tr><td width='150'>Developer:</td> <td><b>Rene Hadler</b></td></tr>"
                                                              "<tr><td>eMail:</td> <td> <a href=mailto:'rene@hadler.me'>rene@hadler.me</a></td></tr>"
                                                              "<tr><td>Website:</td> <td> <a href=https://hadler.me>https://hadler.me</a></td></tr></table>"
@@ -1148,9 +1214,7 @@ void MainWindow::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason)
     {
         if(isHidden())
         {
-            show();
-            raise();
-            QApplication::setActiveWindow(this);
+            showMainWindow();
         }
         else
             hide();
@@ -1166,7 +1230,7 @@ void MainWindow::onVPNSettings()
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Settings"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Settings"));
 
     prefWindow->show();
 }
@@ -1180,7 +1244,7 @@ void MainWindow::onSetupWizard()
     prefWindow->setCentralWidget(f);
     prefWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    prefWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Setup wizard"));
+    prefWindow->setWindowTitle(windowTitle() + QObject::tr(" - Setup wizard"));
 
     prefWindow->show();
     prefWindow->raise();
@@ -1201,7 +1265,7 @@ void MainWindow::onChangelog()
     changeWindow->setCentralWidget(f);
     changeWindow->setMinimumSize(QSize(f->width(),f->height()));
     //prefWindow->setMaximumSize(QSize(f->width(),f->height()));
-    changeWindow->setWindowTitle(windowTitle() + QObject::trUtf8(" - Changelog"));
+    changeWindow->setWindowTitle(windowTitle() + QObject::tr(" - Changelog"));
     f->initAfter();
 
     changeWindow->show();
